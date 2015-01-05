@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Bootstrap 101 Template</title>
+
+    <!-- Bootstrap -->
+    <link href="dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="dist/css/bootstrap-theme.min.css" rel="stylesheet">
+
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+  <div class="container theme-showcase" role="main">
+
+    <div class="jumbotron">
+      <h1>dc example</h1>
+        <p>This is a template showcasing boostrap and dc.js. Use it as a starting point to create something more unique by building on or modifying it.</p>
+    </div>
+
+    <div class="row">
+      <div class="col-md-12">
+        <div id="test"></div>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-md-12">
+      <table id="table" class="table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Qty</th>
+          </tr>
+        </thead>
+      </table>
+      </div>
+    </div>
+  </div>
+
+    <script src="bower_components/jquery/dist/jquery.min.js"></script>
+    <!-- Include all compiled plugins (below), or include individual files as needed -->
+    <script src="dist/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="js/d3.js"></script>
+    <script type="text/javascript" src="js/crossfilter.js"></script>
+    <script type="text/javascript" src="js/dc.min.js"></script>
+    <script type="text/javascript">
+
+
+    d3.csv("sample.csv", function(error, data) {
+
+      var ndx           = crossfilter(data);
+      var dimension  = ndx.dimension(function(d) {return d.name;});
+      var group= dimension.group().reduceSum(function(d) {return d.qty;});
+
+      var pie = drawPie("#test",ndx,dimension,group);
+      var table = drawTable("#table",ndx,dimension);
+  
+      dc.renderAll();
+
+
+      function drawPie (dom, ndx, dimension,group) {
+        var chart = dc.pieChart(dom)
+          .width(768)
+          .height(480)
+          .slicesCap(4)
+          .innerRadius(100)
+          .dimension(dimension)
+          .group(group)
+          .legend(dc.legend());
+   
+          return chart;
+      }
+    
+      function drawTable (dom, ndx, dimension) {
+        var chart= dc.dataTable(dom)
+              .dimension(dimension)
+              .size(1000)
+              .group(function (d) { return "";})
+              .columns([
+                  function (d) {
+                      return d.name || "";
+                  },
+                  function (d) {
+                      return d.qty || "";
+                  }
+              ])
+              .sortBy(function (d) {
+                  return d.name;
+              })
+              .order(d3.ascending);
+        return chart;
+
+      }
+
+    });
+
+
+
+
+
+
+    </script>
+
+  </body>
+</html>
+
