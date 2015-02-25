@@ -21,13 +21,34 @@
   <div class="container theme-showcase" role="main">
 
     <div class="jumbotron">
-      <h1>dc example</h1>
-        <p>This is a template showcasing boostrap and dc.js. Use it as a starting point to create something more unique by building on or modifying it.</p>
+      <h1>Smokefree situation</h1>
+        <p>Explanation needed</p>
+//country,bar,restaurant,workplace,transport,ecig,enforcement,overall
     </div>
 
     <div class="row">
-      <div class="col-md-12">
-        <div id="test"></div>
+      <div class="col-md-3">
+        <div id="overall"></div>
+      </div>
+      <div class="col-md-3">
+        <div id="bar"></div>
+      </div>
+      <div class="col-md-3">
+        <div id="restaurant"></div>
+      </div>
+      <div class="col-md-3">
+        <div id="workplace"></div>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-md-3">
+        <div id="transport"></div>
+      </div>
+      <div class="col-md-3">
+        <div id="ecig"></div>
+      </div>
+      <div class="col-md-3">
+        <div id="enforcement"></div>
       </div>
     </div>
     <div class="row">
@@ -35,8 +56,14 @@
       <table id="table" class="table">
         <thead>
           <tr>
-            <th>Name</th>
-            <th>Qty</th>
+            <th>Country</th>
+            <th>Bar</th>
+            <th>Restaurant</th>
+            <th>Workplace</th>
+            <th>Transport</th>
+            <th>e-cigarette</th>
+            <th>Enforcement</th>
+            <th>Overall</th>
           </tr>
         </thead>
       </table>
@@ -53,28 +80,37 @@
     <script type="text/javascript">
 
 
-    d3.csv("sample.csv", function(error, data) {
+    d3.csv("data/smokemap.csv", function(error, data) {
 
       var ndx           = crossfilter(data);
-      var dimension  = ndx.dimension(function(d) {return d.name;});
-      var group= dimension.group().reduceSum(function(d) {return d.qty;});
+//country,bar,restaurant,workplace,transport,ecig,enforcement,overall
+      var score=["Undefined","Complete Ban","Partial Ban","No Ban","No legislation/Unknown"];
+      var country= ndx.dimension(function(d) {return d.country;});
+      var overall  = ndx.dimension(function(d) {return d.overall;});
+      var group= overall.group().reduceSum(function(d) {return 1;});
 
-      var pie = drawPie("#test",ndx,dimension,group);
-      var table = drawTable("#table",ndx,dimension);
+      var pie = drawPie("#overall","Overall",ndx,overall);
+      var pie = drawPie("#bar","Bar",ndx, ndx.dimension(function(d) {return d.bar;}));
+      var pie = drawPie("#restaurant","Restaurant",ndx, ndx.dimension(function(d) {return d.restaurant;}));
+      var pie = drawPie("#workplace","Workplace",ndx, ndx.dimension(function(d) {return d.workplace;}));
+      var pie = drawPie("#transport","Transport",ndx, ndx.dimension(function(d) {return d.transport;}));
+      var pie = drawPie("#ecig","e-cigarette",ndx, ndx.dimension(function(d) {return d.ecig;}));
+      var pie = drawPie("#enforcement","Enforcement",ndx, ndx.dimension(function(d) {return d.enforcement;}));
+      var table = drawTable("#table",ndx,country);
   
       dc.renderAll();
 
 
-      function drawPie (dom, ndx, dimension,group) {
+      function drawPie (dom, title, ndx, dimension,group) {
+      group = group || dimension.group().reduceSum(function(d) {return 1;})
         var chart = dc.pieChart(dom)
-          .width(768)
-          .height(480)
+          .width(200)
+          .height(200)
           .slicesCap(4)
-          .innerRadius(100)
+          .innerRadius(20)
           .dimension(dimension)
           .group(group)
           .legend(dc.legend());
-   
           return chart;
       }
     
@@ -83,13 +119,18 @@
               .dimension(dimension)
               .size(1000)
               .group(function (d) { return "";})
+//country,bar,restaurant,workplace,transport,ecig,enforcement,overall
               .columns([
                   function (d) {
-                      return d.name || "";
+                      return d.country || "";
                   },
-                  function (d) {
-                      return d.qty || "";
-                  }
+                  function (d) {return score[d.bar] || "";},
+                  function (d) {return score[d.restaurant]|| "";},
+                  function (d) {return score[d.workplace] || "";},
+                  function (d) {return score[d.transport] || "";},
+                  function (d) {return score[d.ecig]|| "";},
+                  function (d) {return score[d.enforcement] || "";},
+                  function (d) {return d.overall || "";}
               ])
               .sortBy(function (d) {
                   return d.name;
