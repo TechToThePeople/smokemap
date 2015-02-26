@@ -9,6 +9,8 @@
     <!-- Bootstrap -->
     <link href="dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="dist/css/bootstrap-theme.min.css" rel="stylesheet">
+  <link rel="stylesheet" type="text/css" href="css/dc.css"/>
+   
 
     <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
     <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
@@ -23,31 +25,30 @@
     <div class="jumbotron">
       <h1>Smokefree situation</h1>
         <p>Explanation needed</p>
-//country,bar,restaurant,workplace,transport,ecig,enforcement,overall
     </div>
 
     <div class="row">
-      <div class="col-md-3">
+      <div class="col-md-2">
         <div id="overall"></div>
-      </div>
-      <div class="col-md-3">
-        <div id="bar"></div>
-      </div>
-      <div class="col-md-3">
-        <div id="restaurant"></div>
-      </div>
-      <div class="col-md-3">
-        <div id="workplace"></div>
       </div>
     </div>
     <div class="row">
-      <div class="col-md-3">
+      <div class="col-md-2">
+        <div id="bar"></div>
+      </div>
+      <div class="col-md-2">
+        <div id="restaurant"></div>
+      </div>
+      <div class="col-md-2">
+        <div id="workplace"></div>
+      </div>
+      <div class="col-md-2">
         <div id="transport"></div>
       </div>
-      <div class="col-md-3">
+      <div class="col-md-2">
         <div id="ecig"></div>
       </div>
-      <div class="col-md-3">
+      <div class="col-md-2">
         <div id="enforcement"></div>
       </div>
     </div>
@@ -77,11 +78,16 @@
     <script type="text/javascript" src="js/d3.js"></script>
     <script type="text/javascript" src="js/crossfilter.js"></script>
     <script type="text/javascript" src="js/dc.min.js"></script>
+<script src="http://d3js.org/topojson.v1.min.js"></script>
+<script src="http://d3js.org/queue.v1.min.js"></script>
+
     <script type="text/javascript">
 
 
     d3.csv("data/smokemap.csv", function(error, data) {
 
+      var _colors = d3.scale.ordinal().range( 
+        ["green","orange","red","#4D4D4D"]);
       var ndx           = crossfilter(data);
 //country,bar,restaurant,workplace,transport,ecig,enforcement,overall
       var score=["Undefined","Complete Ban","Partial Ban","No Ban","No legislation/Unknown"];
@@ -104,11 +110,12 @@
       function drawPie (dom, title, ndx, dimension,group) {
       group = group || dimension.group().reduceSum(function(d) {return 1;})
         var chart = dc.pieChart(dom)
-          .width(200)
-          .height(200)
+          .width(150)
+          .height(150)
           .slicesCap(4)
           .innerRadius(20)
           .dimension(dimension)
+          .colors(_colors)
           .group(group)
           .legend(dc.legend());
           return chart;
@@ -129,7 +136,7 @@
                   function (d) {return score[d.workplace] || "";},
                   function (d) {return score[d.transport] || "";},
                   function (d) {return score[d.ecig]|| "";},
-                  function (d) {return score[d.enforcement] || "";},
+                  function (d) {return d.enforcement || "";},
                   function (d) {return d.overall || "";}
               ])
               .sortBy(function (d) {
@@ -138,8 +145,40 @@
               .order(d3.ascending);
         return chart;
 
-      }
+      };
 
+      function drawMap (countries) {
+        var width=750;
+        var projection = d3.geo.equirectangular()
+            .center([-10,52]) //theorically, 50°7′2.23″N 9°14′51.97″E but this works
+            .scale(width*1.2);
+          var geojson=topojson.feature(europe,europe.objects.countries);
+           
+          var map = dc.geoChoroplethChart("#map-area")
+                .height(700)
+                .width(1200)
+                .dimension(countries)
+                .projection(projection)
+                .group(countryPledges)
+                .colors(d3.scale.quantize().range(["#ffeede","#ffdebe", "#ffb974", "#ffa554", "#ff9a37", "#ff8e22", "#ff7e00","#ff5500"]))
+                .colorDomain([0,2000])
+                .colorCalculator(function (d) { return d ? map.colors()(d) : '#fff'; })
+                .overlayGeoJson(geojson.features,"countries",function(d){
+                   return d.properties.name;
+                })
+                .title(function (d) {return "" + d.key + ': ' + d.value;                                                        });
+                        
+                        
+                map.renderlet(function (chart){
+                  chart.selectAll(".countries").on("click", function (d) {
+                                                                            //$('.bar.'+'1').addClass('selectedbar');
+                                                                                        //barchart.filterAll();
+                                                                                        //barchart.redraw();
+                  })
+               }); 
+
+      };
+      
     });
 
 
