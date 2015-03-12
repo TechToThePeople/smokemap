@@ -12,7 +12,7 @@
   <link rel="stylesheet" type="text/css" href="css/dc.css"/-->
 
     <style>
-.countries {stroke:lightgrey;}
+.countries {stroke:gray;}
 .th {text-align:center}
 .dc-table-group {display:none}
     </style>
@@ -33,7 +33,7 @@
     <div class="row">
       <div class="col-md-10" id="map-area">
       </div>
-      <div class="col-md-2">
+      <div class="col-md-2" id="explanation">
         <p>Explanation needed</p>
       </div>
     </div>
@@ -67,9 +67,9 @@
             <th id="restaurant">Restaurant</th>
             <th id="workplace">Workplace</th>
             <th id="transport">Transport</th>
-            <th id="ecig">e-cigarette</th>
             <th id="enforcement">Enforcement</th>
             <th id="overall">Overall</th>
+            <th id="ecig">e-cigarette</th>
           </tr>
         </thead>
       </table>
@@ -114,8 +114,9 @@
     function draw (error, data) {
 
       //var _colors = d3.scale.ordinal().range(["green","orange","red","#4D4D4D"]);
-      var _colorRange = ["yellow","green","orange","red","#4D4D4D","pink"];
+      var _colorRange = ["green","#08551e","#ff6f00","#be1700","#4D4D4D","pink"];
       var _colors = d3.scale.ordinal().range(_colorRange);
+
       var _colorCalculator= function (d,i) {
         if (typeof d == "undefined")
           return "lightgrey";
@@ -160,7 +161,6 @@
           .group(group)
           .colorCalculator(_colorCalculator)
           .title(function(d) {
-            console.log (d);
             if (typeof score[d.key] == undefined)
               return d.key + ': ' + d.value; 
             return score[d.key] + ': ' + d.value;
@@ -184,9 +184,9 @@
                   function (d) {return score[d.restaurant]|| "";},
                   function (d) {return score[d.workplace] || "";},
                   function (d) {return score[d.transport] || "";},
-                  function (d) {return score[d.ecig]|| "";},
                   function (d) {return d.enforcement || "";},
-                  function (d) {return d.overall || "";}
+                  function (d) {return d.overall || "";},
+                  function (d) {return score[d.ecig]|| "";}
               ])
               .sortBy(function (d) {
                   return d.name;
@@ -212,7 +212,6 @@
                 .dimension(countries)
                 .projection(projection)
                 .group(group)
-                .colors(_colors)
                 .colorCalculator(_colorCalculator)
                 .overlayGeoJson(geojson.features,"countries",function(d){
                    return d.id;
@@ -221,6 +220,11 @@
                         
                         
                 map.on("renderlet.a",function (chart){
+                  chart.selectAll(".countries").on("mouseover", function (d) {
+                    //console.log(d3.select(this));
+                    $("#explanation").html ("<h3>"+d.properties.name+"</h3>");
+                  });
+                
                   chart.selectAll(".countries").on("click", function (d) {
                                                                             //$('.bar.'+'1').addClass('selectedbar');
                                                                                         //barchart.filterAll();
